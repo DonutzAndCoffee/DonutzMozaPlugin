@@ -1,0 +1,179 @@
+﻿<UserControl x:Class="DonutzMozaPlugin.SettingsControl"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:DonutzMozaPlugin"
+             xmlns:styles="clr-namespace:SimHub.Plugins.Styles;assembly=SimHub.Plugins"
+             xmlns:ui="clr-namespace:SimHub.Plugins.UI;assembly=SimHub.Plugins"
+             mc:Ignorable="d">
+    <UserControl.Resources>
+        <!-- Optional: Definiere hier eventuell Ressourcen, wie Stile oder Vorlagen -->
+        
+    </UserControl.Resources>
+
+    <!-- Hauptinhalt des UserControls -->
+    <ScrollViewer>
+        <StackPanel Margin="5">
+            <styles:SHExpander Header="Keybindings">
+                <StackPanel>
+                    <TextBlock TextWrapping="Wrap" Margin="0,0,0,0">Keybindings that can be used on Donutz Moza Plugin Dashboard.</TextBlock>
+                    <ui:ControlsEditor FriendlyName="Cursor up" Width="400" HorizontalAlignment="Left" ActionName="DonutzMozaPlugin.CursorUp"></ui:ControlsEditor>
+                    
+                    <ui:ControlsEditor FriendlyName="Cursor down" Width="400" HorizontalAlignment="Left" ActionName="DonutzMozaPlugin.CursorDown"></ui:ControlsEditor>
+                   
+                    <ui:ControlsEditor FriendlyName="Increase value" Width="400" HorizontalAlignment="Left" ActionName="DonutzMozaPlugin.IncreaseValue"></ui:ControlsEditor>
+                   
+                    <ui:ControlsEditor FriendlyName="Decrease value" Width="400" HorizontalAlignment="Left" ActionName="DonutzMozaPlugin.DecreaseValue"></ui:ControlsEditor>
+                    
+                </StackPanel>
+            </styles:SHExpander>
+
+            <Button Content="Refresh Game List" Width="120" Margin="0,5,0,10" Click="RefreshGameList_Click" HorizontalAlignment="Left"/>
+            <ListView ItemsSource="{Binding GameSettingsList}">
+                <ListView.View>
+                    <GridView>
+                        <GridViewColumn Header="Game Name" DisplayMemberBinding="{Binding Key}" Width="200"/>
+                        <GridViewColumn Header="Active Game Mapping" Width="200">
+                            <GridViewColumn.CellTemplate>
+                                <DataTemplate>
+                                    <CheckBox IsChecked="{Binding Value.activeProfileMapping, Mode=TwoWay}"/>
+                                    
+                                </DataTemplate>
+                            </GridViewColumn.CellTemplate>
+                        </GridViewColumn>
+                        <GridViewColumn Header="Active Car Mapping" Width="200">
+                            <GridViewColumn.CellTemplate>
+                                <DataTemplate>
+                                    <CheckBox IsChecked="{Binding Value.activeCarMapping, Mode=TwoWay}" IsEnabled="{Binding Value.activeProfileMapping}"/>
+
+                                </DataTemplate>
+                            </GridViewColumn.CellTemplate>
+                        </GridViewColumn>
+                    </GridView>
+                </ListView.View>
+            </ListView>
+
+            
+                <!-- Filter für Profilname -->
+            <Button Content="Set Profile" Width="100" Margin="0,5,0,10" Click="OnSetProfileButtonClick" HorizontalAlignment="Left"/>
+
+            <TextBlock>Filter: </TextBlock>
+            <TextBox Width="200" Margin="0,5,0,10"
+                         Text="{Binding MappingFilterText, UpdateSourceTrigger=PropertyChanged}" 
+                         ToolTip="Filter profiles..." HorizontalAlignment="Left"/>
+            
+            <!-- ListView mit Profilen -->
+            <ListView ItemsSource="{Binding FilteredProfiles}" 
+          Margin="0,0,0,10" 
+          SelectedItem="{Binding SelectedProfileKey}">
+                <ListView.View>
+                    <GridView>
+                        <!-- <GridViewColumn Header="Profile Name" DisplayMemberBinding="{Binding Key}" Width="200">-->
+                        <GridViewColumn Header="" Width="180">
+                            <GridViewColumn.CellTemplate>
+                                <DataTemplate>
+                                    <StackPanel Orientation="Vertical">
+                                        <TextBlock Text="{Binding Key}" Padding="0,8,0,10"></TextBlock>
+                                        <Button Content="Delete" Width="80" Margin="0,0,0,129"  HorizontalAlignment="Left"
+                                            Click="OnDeleteProfileButtonClick"
+                                            CommandParameter="{Binding Key}"
+                                            ToolTip="You first need to mark the line by clicking on it.&#10;Only if it is marked in light red the button will work."/>
+                                        <Separator Margin="0,0,0,0" />
+                                    </StackPanel>
+                                </DataTemplate>
+                            </GridViewColumn.CellTemplate>
+                        </GridViewColumn>
+
+                        <GridViewColumn Header="" Width="180">
+                                <GridViewColumn.CellTemplate>
+                                    <DataTemplate>
+                                    <StackPanel Orientation="Vertical">
+                                        <ui:TitledSlider Title="Intensity" Maximum="100" Minimum="0" Value="{Binding Value.MotorFfbStrength, Mode=TwoWay}"/>
+                                        <ui:TitledSlider Title="Max Steering Angle" Maximum="2000" Minimum="90" TickFrequency="2" IsSnapToTickEnabled="True" Value="{Binding Value.MotorLimitAngle, Mode=TwoWay}"/>
+                                        <ui:TitledSlider Title="EQ: 10 hz" Maximum="500" Minimum="0" TickFrequency="10" IsSnapToTickEnabled="True" Value="{Binding Value.EQ10_EqualizerAmp7_5, Mode=TwoWay}"/>
+                                        
+                                        <Separator Margin="0,10,0,0" />
+                                    </StackPanel>
+                                </DataTemplate>
+                            </GridViewColumn.CellTemplate>
+                        </GridViewColumn>
+
+                        <GridViewColumn Header="" Width="180">
+                            <GridViewColumn.CellTemplate>
+                                <DataTemplate>
+                                    <StackPanel Orientation="Vertical">
+                                        <ui:TitledSlider Title="Wheel Damper" Maximum="100" Minimum="0" Value="{Binding Value.MotorNaturalDamper, Mode=TwoWay}"/>
+                                        <ui:TitledSlider Title="Max Wheel Speed" Maximum="100" Minimum="10" Value="{Binding Value.MotorLimitWheelSpeed, Mode=TwoWay}"/>
+                                        <ui:TitledSlider Title="EQ: 15 hz" Maximum="500" Minimum="0" TickFrequency="10" IsSnapToTickEnabled="True" Value="{Binding Value.EQ15_EqualizerAmp13, Mode=TwoWay}"/>
+                                        <Separator Margin="0,10,0,0" />
+                                    </StackPanel>
+                                </DataTemplate>
+                            </GridViewColumn.CellTemplate>
+                        </GridViewColumn>
+
+                        <GridViewColumn Header="" Width="180">
+                            <GridViewColumn.CellTemplate>
+                                <DataTemplate>
+                                    <StackPanel Orientation="Vertical">
+                                        <ui:TitledSlider Title="Spring Strength" Maximum="100" Minimum="0" Value="{Binding Value.MotorSpringStrength, Mode=TwoWay}"/>
+                                        <ui:TitledSlider Title="Road Sensitivity (ruled by EQ)" IsEnabled="False" ToolTip="These are kind of predefined Equalizer settings.&#10;If you change the EQ values, Road Sensitivity settings are obsolete." FontStyle="Oblique" Maximum="10" Minimum="0" Value="{Binding Value.MotorRoadSensitivity, Mode=TwoWay}"/>
+                                        <ui:TitledSlider Title="EQ: 25 hz" Maximum="500" Minimum="0" TickFrequency="10" IsSnapToTickEnabled="True" Value="{Binding Value.EQ25_EqualizerAmp22_5, Mode=TwoWay}"/>
+                                        <Separator Margin="0,10,0,0" />
+                                    </StackPanel>
+                                </DataTemplate>
+                            </GridViewColumn.CellTemplate>
+                        </GridViewColumn>
+
+
+                        <GridViewColumn Header="" Width="180">
+                            <GridViewColumn.CellTemplate>
+                                <DataTemplate>
+                                    <StackPanel Orientation="Vertical">
+                                        <ui:TitledSlider Title="Natural Inertia" Maximum="500" Minimum="100" Value="{Binding Value.MotorNaturalInertia, Mode=TwoWay}"/>
+                                        <ui:TitledSlider Title="Wheel Friction" Maximum="100" Minimum="0" Value="{Binding Value.MotorNaturalFriction, Mode=TwoWay}"/>
+                                        <ui:TitledSlider Title="EQ: 40 hz" Maximum="500" Minimum="0" TickFrequency="10" IsSnapToTickEnabled="True" Value="{Binding Value.EQ40_EqualizerAmp39, Mode=TwoWay}"/>
+                                        <Separator Margin="0,10,0,0" />
+                                    </StackPanel>
+                                </DataTemplate>
+                            </GridViewColumn.CellTemplate>
+                        </GridViewColumn>
+
+                        <GridViewColumn Header="" Width="180">
+                            <GridViewColumn.CellTemplate>
+                                <DataTemplate>
+                                    <StackPanel Orientation="Vertical">
+                                        <ui:TitledSlider Title="Speed dep. Damping" Maximum="100" Minimum="0" Value="{Binding Value.MotorSpeedDamping, Mode=TwoWay}"/>
+                                        <ui:TitledSlider Title="Speed dep. Damping Start" Maximum="400" Minimum="0" Value="{Binding Value.MotorSpeedDampingStartPoint, Mode=TwoWay}"/>
+                                        <ui:TitledSlider Title="EQ: 60 hz" Maximum="500" Minimum="0" TickFrequency="10" IsSnapToTickEnabled="True" Value="{Binding Value.EQ60_EqualizerAmp55, Mode=TwoWay}"/>
+                                        <Separator Margin="0,10,0,0" />
+                                    </StackPanel>
+                                </DataTemplate>
+                            </GridViewColumn.CellTemplate>
+                        </GridViewColumn>
+
+
+
+
+                        <GridViewColumn Header="" Width="180">
+                            <GridViewColumn.CellTemplate>
+                                <DataTemplate>
+                                    <StackPanel Orientation="Vertical">
+
+                                        <ui:TitledSlider Title="EQ: 100 hz" IsEnabled="False" TitleTooltip="Moza SDK currently does not support this." Margin="0,120,0,10" Maximum="500" Minimum="0" TickFrequency="10" IsSnapToTickEnabled="True" Value="{Binding Value.EQ100_EqualizerAmp100, Mode=TwoWay}"/>
+                                        <Separator Margin="0,0,0,0" />
+                                    </StackPanel>
+                                </DataTemplate>
+                            </GridViewColumn.CellTemplate>
+                        </GridViewColumn>
+
+                    </GridView>
+                   
+                </ListView.View>
+                
+            </ListView>
+
+            <TextBlock>Donutz. Proof that sim racing can be delicious.</TextBlock>
+        </StackPanel>
+    </ScrollViewer>
+</UserControl>
