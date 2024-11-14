@@ -8,4 +8,15 @@ This project is still in alpha phase, so stay tuned for updates in near future.
 
 <br>Buy me a coffee if you want at [Paypal](https://paypal.me/donutz75?country.x=DE&locale.x=de_DE).
 
-![grafik](https://github.com/user-attachments/assets/67eef29d-5342-4f31-99ce-bf540aebe572)
+## Release Notes
+0.0.0.4 (2024-11-14): 
+- added Center Wheel keybinding
+- added readable car names to profiles
+- added reverse FFB to game settings
+
+0.0.0.3: Bug fixes and new feature: Learn New Cars (yes/no). If set to no, the plugin tries to find the corresponding profile for the car. If there is none, it will fall back to the game profile.
+
+0.0.0.1: Initial release
+
+![grafik](https://github.com/user-attachments/assets/80abc35a-d77f-479a-b782-23bad95f08a6)
+
