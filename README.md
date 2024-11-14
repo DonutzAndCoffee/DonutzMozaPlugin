@@ -20,5 +20,6 @@ This project is still in alpha phase, so stay tuned for updates in near future.
 
 0.0.0.1: Initial release
 
-![grafik](https://github.com/user-attachments/assets/80abc35a-d77f-479a-b782-23bad95f08a6)
+![grafik](https://github.com/user-attachments/assets/732f3598-6342-409a-bd15-612604a3f4fa)
+
 
