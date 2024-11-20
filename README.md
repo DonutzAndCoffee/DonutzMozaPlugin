@@ -13,14 +13,17 @@ This project is still in alpha phase, so stay tuned for updates in near future.
 Just drop all three .dll files (DonutzMozaPlugin.dll, MOZA_API_C.dll and MOZA_API_CSharp.dll) into your Simhub install folder and restart Simhub.
 
 ## Release Notes
-0.0.0.4 (2024-11-14): 
+v0.0.5 (2024-11-20):
+- added some tooltips and minor bugfixes.
+
+v0.0.4 (2024-11-14): 
 - added Center Wheel keybinding
 - added readable car names to profiles
 - added reverse FFB to game settings
 
-0.0.0.3: Bug fixes and new feature: Learn New Cars (yes/no). If set to no, the plugin tries to find the corresponding profile for the car. If there is none, it will fall back to the game profile.
+v0.0.3: Bug fixes and new feature: Learn New Cars (yes/no). If set to no, the plugin tries to find the corresponding profile for the car. If there is none, it will fall back to the game profile.
 
-0.0.0.1: Initial release
+v0.0.1: Initial release
 
 ![grafik](https://github.com/user-attachments/assets/732f3598-6342-409a-bd15-612604a3f4fa)
 
