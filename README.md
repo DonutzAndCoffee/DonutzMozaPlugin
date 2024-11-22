@@ -13,6 +13,9 @@ This project is still in alpha phase, so stay tuned for updates in near future.
 Just drop all three .dll files (DonutzMozaPlugin.dll, MOZA_API_C.dll and MOZA_API_CSharp.dll) into your Simhub install folder and restart Simhub.
 
 ## Release Notes
+v0.1.0 (2024-11-22)
+- changed behaviour for new car profiles. It will pick the game related profile if there is one already instead of the current Moza settings.
+
 v0.0.5 (2024-11-20):
 - added some tooltips and minor bugfixes.
 
