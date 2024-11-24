@@ -13,6 +13,9 @@ This project is still in alpha phase, so stay tuned for updates in near future.
 Just drop all three .dll files (DonutzMozaPlugin.dll, MOZA_API_C.dll and MOZA_API_CSharp.dll) into your Simhub install folder and restart Simhub.
 
 ## Release Notes
+v0.1.2 (2024-11-24)
+- bug fix: car model name was handled incorrectly in some situations when adding new car related profiles.
+
 v0.1.1 (2024-11-22)
 - changed behaviour of the mouse wheel. It should scroll the page correctly now.
 
