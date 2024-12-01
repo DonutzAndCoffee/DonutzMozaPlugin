@@ -14,6 +14,21 @@ This project is still in alpha phase, so stay tuned for updates in near future.
 This repository contains only the compiled version of the Simhub Moza Plugin.  
 The source code is **not publicly available** at the moment, but it may be released in a future version.
 
+## Included Moza SDK Files
+
+This plugin package includes two DLL files from the Moza SDK:
+
+- `MOZA_API_C.dll`
+- `MOZA_API_CSharp.dll`
+
+These files are provided by Moza and are included here solely for the purpose of enabling integration with the Moza hardware.  
+For more information about the Moza SDK, please visit [Moza's official website](https://www.mozaracing.com/moza-sdk/). The latest version of the dll files can be dowloaded there.
+
+### Disclaimer
+
+The included Moza SDK files are the property of Moza.  
+I am not affiliated with Moza, and any issues related to these files should be addressed to Moza's support.
+
 ## Installation: 
 Just drop all three .dll files (DonutzMozaPlugin.dll, MOZA_API_C.dll and MOZA_API_CSharp.dll) into your Simhub install folder and restart Simhub.
 
