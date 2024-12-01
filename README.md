@@ -11,8 +11,8 @@ This project is still in alpha phase, so stay tuned for updates in near future.
 
 ## Source Code Availability
 
-This repository only contains the compiled version of the Simhub Moza Plugin.  
-The source code is **not publicly available**.
+This repository contains only the compiled version of the Simhub Moza Plugin.  
+The source code is **not publicly available** at the moment, but it may be released in a future version.
 
 ## Installation: 
 Just drop all three .dll files (DonutzMozaPlugin.dll, MOZA_API_C.dll and MOZA_API_CSharp.dll) into your Simhub install folder and restart Simhub.
