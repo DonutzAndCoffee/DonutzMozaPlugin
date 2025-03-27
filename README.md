@@ -7,6 +7,8 @@ You might need hit the "REFRESH PROFILE LIST" button in order to see the new ent
 
 This project is still in alpha phase, so stay tuned for updates in near future.
 
+Discord: https://discord.gg/KuSsEYgB3k
+
 <br>Buy me a coffee if you want at [Paypal](https://paypal.me/donutz75?country.x=DE&locale.x=de_DE).
 
 ## Source Code Availability
