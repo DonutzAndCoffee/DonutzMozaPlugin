@@ -35,6 +35,9 @@ I am not affiliated with Moza, and any issues related to these files should be a
 Just drop all three .dll files (DonutzMozaPlugin.dll, MOZA_API_C.dll and MOZA_API_CSharp.dll) into your Simhub install folder and restart Simhub.
 
 ## Release Notes
+v0.2 (2025-03-31)
+- added an indicator that marks the active profile
+  
 v0.1.2 (2024-11-24)
 - bug fix: car model name was handled incorrectly in some situations when adding new car related profiles.
 
