@@ -4,11 +4,6 @@ Discord: https://discord.gg/KuSsEYgB3k
 
 <br>Buy me a coffee if you want at [Paypal](https://paypal.me/donutz75?country.x=DE&locale.x=de_DE).
 
-## Source Code Availability
-
-This repository contains only the compiled version of the Simhub Moza Plugin.  
-The source code is **not publicly available** at the moment, but it may be released in a future version.
-
 ## Included Moza SDK Files
 
 This plugin package includes two DLL files from the Moza SDK:
