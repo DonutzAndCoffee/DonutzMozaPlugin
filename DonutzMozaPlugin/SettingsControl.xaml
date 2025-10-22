@@ -8,9 +8,12 @@
              xmlns:ui="clr-namespace:SimHub.Plugins.UI;assembly=SimHub.Plugins"
              mc:Ignorable="d">
     <UserControl.Resources>
-        <!-- Optional: Definiere hier eventuell Ressourcen, wie Stile oder Vorlagen -->
+        <local:ProfileHighlightMultiConverter x:Key="ProfileHighlightConverter" />
+        <local:ProfileHighlightMatchOnlyConverter x:Key="ProfileHighlighterMatchOnly" />
+
         
     </UserControl.Resources>
+
 
     <!-- Hauptinhalt des UserControls -->
     <ScrollViewer>
@@ -25,57 +28,183 @@
                     <ui:ControlsEditor FriendlyName="Increase value" Width="400" HorizontalAlignment="Left" ActionName="DonutzMozaPlugin.IncreaseValue"></ui:ControlsEditor>
                    
                     <ui:ControlsEditor FriendlyName="Decrease value" Width="400" HorizontalAlignment="Left" ActionName="DonutzMozaPlugin.DecreaseValue"></ui:ControlsEditor>
-                    
+                    <styles:SHSectionSeparator></styles:SHSectionSeparator>
+                    <TextBlock TextWrapping="Wrap" Margin="0,0,0,0">Common keybindings</TextBlock>
+                    <ui:ControlsEditor FriendlyName="Center wheel" Width="400" HorizontalAlignment="Left" ActionName="DonutzMozaPlugin.CenterWheel"></ui:ControlsEditor>
+                    <ui:ControlsEditor FriendlyName="Apply current profile" Width="400" HorizontalAlignment="Left" ActionName="DonutzMozaPlugin.ApplyProfile"></ui:ControlsEditor>
+
                 </StackPanel>
             </styles:SHExpander>
-
+            <styles:SHSectionSeparator></styles:SHSectionSeparator>
+            <styles:SHSectionTitle FontSize="20">Game Settings</styles:SHSectionTitle>
             <Button Content="Refresh Game List" Width="120" Margin="0,5,0,10" Click="RefreshGameList_Click" HorizontalAlignment="Left"/>
-            <ListView ItemsSource="{Binding GameSettingsList}">
+            <ListView ItemsSource="{Binding GameSettingsList}" PreviewMouseWheel="ListView_PreviewMouseWheel">
                 <ListView.View>
                     <GridView>
-                        <GridViewColumn Header="Game Name" DisplayMemberBinding="{Binding Key}" Width="200"/>
-                        <GridViewColumn Header="Active Game Mapping" Width="200">
+                        
+                        <GridViewColumn>
+                            <GridViewColumn.Header>
+                                <GridViewColumnHeader>
+                                    <StackPanel Orientation="Horizontal">
+                                        <TextBlock Text="Game Name" Margin="0,0,5,0" />
+                                        <TextBlock Text="ℹ" 
+                           Foreground="White" 
+                           Cursor="Help"
+                           ToolTip="Games will be added automatically when started first time." 
+                           FontSize="10" FontWeight="Light"/>
+                                    </StackPanel>
+                                </GridViewColumnHeader>
+                            </GridViewColumn.Header>
+                            <GridViewColumn.DisplayMemberBinding>
+                                <Binding Path="Key" />
+                            </GridViewColumn.DisplayMemberBinding>
+                            <GridViewColumn.Width>200</GridViewColumn.Width>
+                        </GridViewColumn>
+                        
+                        <GridViewColumn Width="200">
+                            <GridViewColumn.Header>
+                                <GridViewColumnHeader>
+                                    <StackPanel Orientation="Horizontal">
+                                        <TextBlock Text="Active Game Mapping" Margin="0,0,5,0" />
+                                        <TextBlock Text="ℹ" 
+                           Foreground="White" 
+                           Cursor="Help"
+                           ToolTip="Activates plugin for the specific game.&#10;Initial profile will be set to current Pit House settings when starting the game."
+                           FontSize="10" FontWeight="Light"/>
+                                    </StackPanel>
+                                </GridViewColumnHeader>
+                            </GridViewColumn.Header>
                             <GridViewColumn.CellTemplate>
                                 <DataTemplate>
                                     <CheckBox IsChecked="{Binding Value.activeProfileMapping, Mode=TwoWay}"/>
-                                    
                                 </DataTemplate>
                             </GridViewColumn.CellTemplate>
                         </GridViewColumn>
-                        <GridViewColumn Header="Active Car Mapping" Width="200">
+
+                        <GridViewColumn Width="200">
+                            <GridViewColumn.Header>
+                                <GridViewColumnHeader>
+                                    <StackPanel Orientation="Horizontal">
+                                        <TextBlock Text="Active Car Mapping" Margin="0,0,5,0" />
+                                        <TextBlock Text="ℹ" 
+                           Foreground="White" 
+                           Cursor="Help" 
+                           ToolTip="If active, the plugin will try to find a game/car related profile and use it.&#10;If there is no such profile it will fall back to game related profile." 
+                           FontSize="10" FontWeight="Light"/>
+                                    </StackPanel>
+                                </GridViewColumnHeader>
+                            </GridViewColumn.Header>
                             <GridViewColumn.CellTemplate>
                                 <DataTemplate>
-                                    <CheckBox IsChecked="{Binding Value.activeCarMapping, Mode=TwoWay}" IsEnabled="{Binding Value.activeProfileMapping}"/>
-
+                                    <CheckBox IsChecked="{Binding Value.activeCarMapping, Mode=TwoWay}" 
+                      IsEnabled="{Binding Value.activeProfileMapping}"/>
                                 </DataTemplate>
                             </GridViewColumn.CellTemplate>
                         </GridViewColumn>
+
+                        <GridViewColumn Width="200">
+                            <GridViewColumn.Header>
+                                <GridViewColumnHeader>
+                                    <StackPanel Orientation="Horizontal">
+                                        <TextBlock Text="Learn new Cars" Margin="0,0,5,0" />
+                                        <TextBlock Text="ℹ" 
+                           Foreground="White" 
+                           Cursor="Help" 
+                           ToolTip="Creates new car related profile if it does not yet exist.&#10;Car profile will be created when entering a new session.&#10;Initial profile will be set to game related settings." 
+                           FontSize="10" FontWeight="Light"/>
+                                    </StackPanel>
+                                </GridViewColumnHeader>
+                            </GridViewColumn.Header>
+                            <GridViewColumn.CellTemplate>
+                                <DataTemplate>
+                                    <CheckBox IsChecked="{Binding Value.learnNewCars, Mode=TwoWay}" 
+                      IsEnabled="{Binding Value.activeCarMapping}"/>
+                                </DataTemplate>
+                            </GridViewColumn.CellTemplate>
+                        </GridViewColumn>
+
+                        <GridViewColumn Width="200">
+                            <GridViewColumn.Header>
+                                <GridViewColumnHeader>
+                                    <StackPanel Orientation="Horizontal">
+                                        <TextBlock Text="Reversed FFB" Margin="0,0,5,0" />
+                                        <TextBlock Text="ℹ" 
+                           Foreground="White" 
+                           Cursor="Help" 
+                           ToolTip="Aktiviert das umgekehrte Force Feedback (FFB)." 
+                           FontSize="10" FontWeight="Light"/>
+                                    </StackPanel>
+                                </GridViewColumnHeader>
+                            </GridViewColumn.Header>
+                            <GridViewColumn.CellTemplate>
+                                <DataTemplate>
+                                    <CheckBox IsChecked="{Binding Value.reversedFFB, Mode=TwoWay}"/>
+                                </DataTemplate>
+                            </GridViewColumn.CellTemplate>
+                        </GridViewColumn>
+
                     </GridView>
                 </ListView.View>
             </ListView>
-
-            
-                <!-- Filter für Profilname -->
-            <Button Content="Set Profile" Width="100" Margin="0,5,0,10" Click="OnSetProfileButtonClick" HorizontalAlignment="Left"/>
-
-            <TextBlock>Filter: </TextBlock>
+            <styles:SHSectionSeparator></styles:SHSectionSeparator>
+            <styles:SHSectionTitle FontSize="20">Profile Mapping</styles:SHSectionTitle>
+            <StackPanel Orientation="Horizontal">
+            <TextBlock Padding="10,10,10,10">Filter: </TextBlock>
             <TextBox Width="200" Margin="0,5,0,10"
-                         Text="{Binding MappingFilterText, UpdateSourceTrigger=PropertyChanged}" 
+                         Text="{Binding MappingFilterText, UpdateSourceTrigger=PropertyChanged , Mode=TwoWay}" 
                          ToolTip="Filter profiles..." HorizontalAlignment="Left"/>
-            
-            <!-- ListView mit Profilen -->
-            <ListView ItemsSource="{Binding FilteredProfiles}" 
+            <Button Content="Refresh Profile List" Width="120" Margin="10,5,10,10" Click="RefreshProfileList_Click" HorizontalAlignment="Left"/>
+            <Button Content="Set Profile" Width="100" Margin="0,5,0,10" Click="OnSetProfileButtonClick" HorizontalAlignment="Left"/>
+            </StackPanel>
+            <ListView ItemsSource="{Binding FilteredProfiles}" PreviewMouseWheel="ListView_PreviewMouseWheel"
           Margin="0,0,0,10" 
           SelectedItem="{Binding SelectedProfileKey}">
                 <ListView.View>
                     <GridView>
-                        <!-- <GridViewColumn Header="Profile Name" DisplayMemberBinding="{Binding Key}" Width="200">-->
                         <GridViewColumn Header="" Width="180">
                             <GridViewColumn.CellTemplate>
                                 <DataTemplate>
-                                    <StackPanel Orientation="Vertical">
+                                    <StackPanel Orientation="Vertical" >
+
+                                        <StackPanel.Background>
+                                            <MultiBinding Converter="{StaticResource ProfileHighlightConverter}">
+                                                <Binding Path="Key"/>
+                                                <Binding Path="DataContext.ActiveProfileKey" RelativeSource="{RelativeSource AncestorType=UserControl}"/>
+                                            </MultiBinding>
+                                        </StackPanel.Background>
+
+                                        <TextBlock Text="Active Profile"
+                                           Foreground="Green"
+                                           FontWeight="Bold"
+                                           HorizontalAlignment="Right"
+                                           Margin="0,4,4,0">
+                                            <TextBlock.Style>
+                                                <Style TargetType="TextBlock">
+                                                    <!-- Default: nicht sichtbar -->
+                                                    <Setter Property="Visibility" Value="Collapsed" />
+                                                    <Style.Triggers>
+                                                        <DataTrigger Value="True">
+                                                            <DataTrigger.Binding>
+                                                                <MultiBinding Converter="{StaticResource ProfileHighlighterMatchOnly}">
+                                                                    <Binding Path="Key"/>
+                                                                    <Binding Path="DataContext.ActiveProfileKey" RelativeSource="{RelativeSource AncestorType=UserControl}"/>
+                                                                </MultiBinding>
+                                                            </DataTrigger.Binding>
+                                                            <Setter Property="Visibility" Value="Visible"/>
+                                                        </DataTrigger>
+                                                    </Style.Triggers>
+                                                </Style>
+                                            </TextBlock.Style>
+                                        </TextBlock>
+
+
+
+
+                                        <TextBlock Text="Profile:" Padding="0,8,0,0"></TextBlock>
                                         <TextBlock Text="{Binding Key}" Padding="0,8,0,10"></TextBlock>
-                                        <Button Content="Delete" Width="80" Margin="0,0,0,129"  HorizontalAlignment="Left"
+                                        <TextBlock Text="Car name:" Padding="0,8,0,0"></TextBlock>
+                                        <TextBlock Text="{Binding Value.CarModel}" Padding="0,8,0,10"></TextBlock>
+                                        <Button Content="Delete" Width="80" Margin="0,0,0,47"  HorizontalAlignment="Left"
                                             Click="OnDeleteProfileButtonClick"
                                             CommandParameter="{Binding Key}"
                                             ToolTip="You first need to mark the line by clicking on it.&#10;Only if it is marked in light red the button will work."/>
@@ -104,7 +233,7 @@
                                 <DataTemplate>
                                     <StackPanel Orientation="Vertical">
                                         <ui:TitledSlider Title="Wheel Damper" Maximum="100" Minimum="0" Value="{Binding Value.MotorNaturalDamper, Mode=TwoWay}"/>
-                                        <ui:TitledSlider Title="Max Wheel Speed" Maximum="100" Minimum="10" Value="{Binding Value.MotorLimitWheelSpeed, Mode=TwoWay}"/>
+                                        <ui:TitledSlider Title="Max Wheel Speed" Maximum="200" Minimum="10" Value="{Binding Value.MotorLimitWheelSpeed, Mode=TwoWay}"/>
                                         <ui:TitledSlider Title="EQ: 15 hz" Maximum="500" Minimum="0" TickFrequency="10" IsSnapToTickEnabled="True" Value="{Binding Value.EQ15_EqualizerAmp13, Mode=TwoWay}"/>
                                         <Separator Margin="0,10,0,0" />
                                     </StackPanel>
@@ -144,7 +273,7 @@
                                 <DataTemplate>
                                     <StackPanel Orientation="Vertical">
                                         <ui:TitledSlider Title="Speed dep. Damping" Maximum="100" Minimum="0" Value="{Binding Value.MotorSpeedDamping, Mode=TwoWay}"/>
-                                        <ui:TitledSlider Title="Speed dep. Damping Start" Maximum="400" Minimum="0" Value="{Binding Value.MotorSpeedDampingStartPoint, Mode=TwoWay}"/>
+                                        <ui:TitledSlider Title="Speed dep. Damping Start" Maximum="400" Minimum="0" TickFrequency="5" IsSnapToTickEnabled="True" Value="{Binding Value.MotorSpeedDampingStartPoint, Mode=TwoWay}"/>
                                         <ui:TitledSlider Title="EQ: 60 hz" Maximum="500" Minimum="0" TickFrequency="10" IsSnapToTickEnabled="True" Value="{Binding Value.EQ60_EqualizerAmp55, Mode=TwoWay}"/>
                                         <Separator Margin="0,10,0,0" />
                                     </StackPanel>
@@ -160,7 +289,7 @@
                                 <DataTemplate>
                                     <StackPanel Orientation="Vertical">
 
-                                        <ui:TitledSlider Title="EQ: 100 hz" IsEnabled="False" TitleTooltip="Moza SDK currently does not support this." Margin="0,120,0,10" Maximum="500" Minimum="0" TickFrequency="10" IsSnapToTickEnabled="True" Value="{Binding Value.EQ100_EqualizerAmp100, Mode=TwoWay}"/>
+                                        <ui:TitledSlider Title="EQ: 100 hz" IsEnabled="True" TitleTooltip="Moza SDK currently does not support this." Margin="0,120,0,10" Maximum="100" Minimum="0" TickFrequency="10" IsSnapToTickEnabled="True" Value="{Binding Value.EQ100_EqualizerAmp100, Mode=TwoWay}"/>
                                         <Separator Margin="0,0,0,0" />
                                     </StackPanel>
                                 </DataTemplate>
@@ -172,7 +301,7 @@
                 </ListView.View>
                 
             </ListView>
-
+            <TextBlock>Donutz Moza Plugin v0.5</TextBlock>
             <TextBlock>Donutz. Proof that sim racing can be delicious.</TextBlock>
         </StackPanel>
     </ScrollViewer>

@@ -1,20 +1,16 @@
 ﻿using GameReaderCommon;
 using SimHub.Plugins;
 using System;
-using System.Windows.Media;
-using System.Diagnostics;
-using Microsoft.Win32;
-using SimHub.Plugins.OutputPlugins.GraphicalDash.UI;
-using System.Windows.Markup;
-using System.IO;
-using System.Runtime.InteropServices;
-using System.Text;
-using System.Runtime;
-using System.Drawing;
-using static DonutzMozaPlugin.DonutzMozaPluginSettings;
-using System.Windows.Controls;
 using System.Collections.Generic;
-using MahApps.Metro.Controls;
+using System.Drawing;
+using System.IO;
+using System.Windows.Controls;
+using System.Windows.Input;
+using System.Windows.Markup;
+using System.Windows.Media;
+using static DonutzMozaPlugin.DonutzMozaPluginSettings;
+
+
 
 namespace DonutzMozaPlugin
 {
@@ -30,31 +26,49 @@ namespace DonutzMozaPlugin
         public int cursorPos = 1;
 
         public string LeftMenuTitle => "Moza Plugin";
+        private SettingsViewModel _viewModel;
+
 
         public void DataUpdate(PluginManager pluginManager, ref GameData data)
         {
+
+            //if (_viewModel.MappingFilterText != data.GameName)
+            //{
+            //    _viewModel.MappingFilterText = data.GameName;
+            //}
+
             if (data.GameRunning)
             {
-                
+
+                if (_viewModel.MappingFilterText != data.GameName)
+                {
+                    _viewModel.MappingFilterText = data.GameName;
+                }
+
                 if (data.OldData != null && data.NewData != null)
                 {
                     string profileName = data.GameName + '_' + data.NewData.CarId;
                     if (data.OldData.CarId != data.NewData.CarId)
                     {
-
-                        //SetMozaProfile(Settings.GetProfile(profileName));
-                        //this.AttachDelegate("mozaProfileName", () => profileName);
                         SetMozaProfile();
                     }
+                    
                 }
                 if (data.OldData == null && data.NewData != null)
                 {
                     
                     if (Settings.getGameSetting(data.GameName).activeProfileMapping)
                     {
-                        //string profileName = data.GameName + '_' + data.NewData.CarId;
-                        //SetMozaProfile(Settings.GetProfile(profileName));
-                        //this.AttachDelegate("mozaProfileName", () => profileName);
+                        
+                        
+                        var devices = PluginManager.GetConnectedGameControllers();
+                        
+                        foreach (var device in devices)
+                        {
+                            SimHub.Logging.Current.Info("Devices: " + device.Name);
+                            SimHub.Logging.Current.Info("Devices: " + device.Settings.InstanceId);
+                        }
+
                         SetMozaProfile();
                     }
                     else
@@ -84,52 +98,110 @@ namespace DonutzMozaPlugin
             profileAMP.Add("EqualizerAmp13", mozaProfile.EQ15_EqualizerAmp13);
             profileAMP.Add("EqualizerAmp22_5", mozaProfile.EQ25_EqualizerAmp22_5);
             profileAMP.Add("EqualizerAmp39", mozaProfile.EQ40_EqualizerAmp39);
-            profileAMP.Add("EqualizerAmp100", mozaProfile.EQ100_EqualizerAmp100);
-            profileAMP.Add("EqualizerAmp55", mozaProfile.EQ60_EqualizerAmp55);
             
-            mozaAPI.mozaAPI.setMotorEqualizerAmp(profileAMP);
+            profileAMP.Add("EqualizerAmp55", mozaProfile.EQ60_EqualizerAmp55);
+            profileAMP.Add("EqualizerAmp100", mozaProfile.EQ100_EqualizerAmp100);
 
-            this.AttachDelegate("mozaProfile", () => mozaProfile);
+            mozaAPI.mozaAPI.setMotorEqualizerAmp(profileAMP);
+            if (Settings.getGameSetting(PluginManager.GameName).reversedFFB)
+            {
+                mozaAPI.mozaAPI.setMotorFfbReverse(1);
+            }
+            else
+            {
+                mozaAPI.mozaAPI.setMotorFfbReverse(0);
+            }
+
+
+            
+
+            //mozaAPI.ERRORCODE err = mozaAPI.ERRORCODE.NORMAL;
+            //SimHub.Logging.Current.Info(mozaAPI.mozaAPI.getSteeringWheelShiftIndicatorMode(ref err));
+            //SimHub.Logging.Current.Info(mozaAPI.mozaAPI.setSteeringWheelShiftIndicatorMode(1));
+            //SimHub.Logging.Current.Info(mozaAPI.mozaAPI.getSteeringWheelShiftIndicatorMode(ref err));
+
+            //SimHub.Logging.Current.Info(mozaAPI.mozaAPI.setSteeringWheelShiftIndicatorSwitch(1)); // 1 = RPM Indicator, 2 = off, 3= On
+
+            //err = mozaAPI.ERRORCODE.NORMAL;
+            //var test = mozaAPI.mozaAPI.getSteeringWheelShiftIndicatorLightRpm(ref err);
+            //foreach (var item in test)
+            //{
+            //    SimHub.Logging.Current.Info("RPM: " + item);
+            //}
+
+            //List<int> numbers = new List<int> { 10, 20, 30, 40, 50, 60, 70, 80, 90, 10 };
+
+            //List<string> colors = new List<string> { "#FF00CE00", "#FF00CE00", "#FF00CE00", "#FFFF0606", "#FFFF0606", "#FFFF0606", "#FFFF3CFF", "#FFFF3CFF", "#FFFF3CFF", "#FFFF3CFF" };
+
+            //SimHub.Logging.Current.Info(mozaAPI.mozaAPI.setSteeringWheelShiftIndicatorLightRpm(numbers));
+            //SimHub.Logging.Current.Info(mozaAPI.mozaAPI.setSteeringWheelShiftIndicatorColor(colors));
+
+            this.AttachDelegate("mozaProfile", () => mozaProfile);            
         }
 
         public void SetMozaProfile()
         {
-            if (PluginManager.LastData.GameRunning)
+            if (PluginManager.LastData!=null)
             {
-                string game = PluginManager.LastData.GameName;
-                GameSetting currentGameSettings = Settings.getGameSetting(game);
-                if (currentGameSettings.activeProfileMapping)
+                if (PluginManager.LastData.GameRunning)
                 {
-                    if (currentGameSettings.activeCarMapping)
+                    string game = PluginManager.LastData.GameName;
+                    GameSetting currentGameSettings = Settings.getGameSetting(game);
+                    if (currentGameSettings.activeProfileMapping)
                     {
-                        string carID = PluginManager.LastData.OldData.CarId;
-                        if ((game != null) && (carID != null))
+                        if (currentGameSettings.activeCarMapping)
                         {
-                            MozaProfile mozaProfile = Settings.GetProfile(game + '_' + carID);
+                            string carID = PluginManager.LastData.NewData.CarId;
+                            string carModel = PluginManager.LastData.NewData.CarModel;
+                            if ((game != null) && (carID != null))
+                            {
+                                string key;
+                                MozaProfile mozaProfile = Settings.GetProfile(game, carID, currentGameSettings.activeCarMapping, currentGameSettings.learnNewCars, carModel, out key);
+                                SetMozaProfile(mozaProfile);
+
+                                this.AttachDelegate("mozaProfileName", () => key);
+                                _viewModel.ActiveProfileKey = key;
+
+                            }
+                        }
+                        else
+                        {
+                            string key;
+                            MozaProfile mozaProfile = Settings.GetProfile(game, null, currentGameSettings.activeCarMapping, currentGameSettings.learnNewCars, null, out key);
                             SetMozaProfile(mozaProfile);
-                            this.AttachDelegate("mozaProfileName", () => game + '_' + carID);
+                            this.AttachDelegate("mozaProfileName", () => key);
+                            _viewModel.ActiveProfileKey = key;
+
                         }
                     }
-                    else 
-                    {
-                        MozaProfile mozaProfile = Settings.GetProfile(game);
-                        SetMozaProfile(mozaProfile);
-                        this.AttachDelegate("mozaProfileName", () => game);
-                    }
-
-                    
                 }
-                    
             }
+            
         }
 
         public void Init(PluginManager pluginManager)
         {
             SimHub.Logging.Current.Info("Starting Donutz Moza plugin");
+
             Settings = this.ReadCommonSettings<DonutzMozaPluginSettings>("MozaPluginSettings", () => new DonutzMozaPluginSettings());
+            //_viewModel.ActiveProfileKey = "none";
+            
+
             mozaAPI.mozaAPI.installMozaSDK();
             this.AttachDelegate("currentMozaSettings", () => getCurrentMozaSettings());
             this.AttachDelegate("cursorPos", () => cursorPos);
+
+            this.AddAction("CenterWheel", (a, b) => 
+            {
+                mozaAPI.mozaAPI.CenterWheel();
+                
+            });
+
+            this.AddAction("ApplyProfile", (a, b) =>
+            {
+                SetMozaProfile();
+
+            });
 
             this.AddAction("CursorUp", (a, b) =>
             {
@@ -148,16 +220,20 @@ namespace DonutzMozaPlugin
                 if (PluginManager.LastData.GameRunning)
                 {
                     string game = PluginManager.LastData.GameName;
+                    
                     GameSetting currentGameSettings = Settings.getGameSetting(game);
                     if (currentGameSettings.activeProfileMapping)
                     {
                         if (currentGameSettings.activeCarMapping)
                         {
-                            IncreaseValue(cursorPos, Settings.GetProfile(PluginManager.LastData.GameName + '_' + PluginManager.LastData.OldData.CarId));
+                            string carModel = PluginManager.LastData.NewData.CarModel;
+                            string key;
+                            IncreaseValue(cursorPos, Settings.GetProfile(PluginManager.LastData.GameName, PluginManager.LastData.OldData.CarId, currentGameSettings.activeCarMapping, currentGameSettings.learnNewCars, carModel, out key));
                         }
                         else
                         {
-                            IncreaseValue(cursorPos, Settings.GetProfile(PluginManager.LastData.GameName));
+                            string key;
+                            IncreaseValue(cursorPos, Settings.GetProfile(PluginManager.LastData.GameName, null, currentGameSettings.activeCarMapping, currentGameSettings.learnNewCars, null, out key));
                         }
                     }
                 }
@@ -173,11 +249,14 @@ namespace DonutzMozaPlugin
                     {
                         if (currentGameSettings.activeCarMapping)
                         {
-                            DecreaseValue(cursorPos, Settings.GetProfile(PluginManager.LastData.GameName + '_' + PluginManager.LastData.OldData.CarId));
+                            string carModel = PluginManager.LastData.NewData.CarModel;
+                            string key;
+                            DecreaseValue(cursorPos, Settings.GetProfile(PluginManager.LastData.GameName, PluginManager.LastData.OldData.CarId, currentGameSettings.activeCarMapping, currentGameSettings.learnNewCars, carModel, out key));
                         }
                         else
                         {
-                            DecreaseValue(cursorPos, Settings.GetProfile(PluginManager.LastData.GameName));
+                            string key;
+                            DecreaseValue(cursorPos, Settings.GetProfile(PluginManager.LastData.GameName, null, currentGameSettings.activeCarMapping, currentGameSettings.learnNewCars, null, out key));
                         }
                     }
                 }
@@ -186,34 +265,52 @@ namespace DonutzMozaPlugin
         }
         public MozaProfile getCurrentMozaSettings()
         {
-            mozaAPI.ERRORCODE err = mozaAPI.ERRORCODE.NORMAL;
-            MozaProfile currentMozaSettings = new MozaProfile
+            try
             {
-                MotorFfbStrength = mozaAPI.mozaAPI.getMotorFfbStrength(ref err),
-                MotorLimitAngle = mozaAPI.mozaAPI.getMotorLimitAngle(ref err).Item2,
-                MotorNaturalDamper = mozaAPI.mozaAPI.getMotorNaturalDamper(ref err),
-                MotorLimitWheelSpeed = mozaAPI.mozaAPI.getMotorLimitWheelSpeed(ref err),
-                MotorSpringStrength = mozaAPI.mozaAPI.getMotorSpringStrength(ref err),
-                MotorRoadSensitivity = mozaAPI.mozaAPI.getMotorRoadSensitivity(ref err),
-                MotorNaturalInertia = mozaAPI.mozaAPI.getMotorNaturalInertia(ref err),
-                MotorNaturalFriction = mozaAPI.mozaAPI.getMotorNaturalFriction(ref err),
-                MotorSpeedDamping = mozaAPI.mozaAPI.getMotorSpeedDamping(ref err),
-                MotorSpeedDampingStartPoint = mozaAPI.mozaAPI.getMotorSpeedDampingStartPoint(ref err),
-                EQ10_EqualizerAmp7_5 = mozaAPI.mozaAPI.getMotorEqualizerAmp(ref err)["EqualizerAmp7_5"],
-                EQ15_EqualizerAmp13 = mozaAPI.mozaAPI.getMotorEqualizerAmp(ref err)["EqualizerAmp13"],
-                EQ25_EqualizerAmp22_5 = mozaAPI.mozaAPI.getMotorEqualizerAmp(ref err)["EqualizerAmp22_5"],
-                EQ40_EqualizerAmp39 = mozaAPI.mozaAPI.getMotorEqualizerAmp(ref err)["EqualizerAmp39"],
-                EQ60_EqualizerAmp55 = mozaAPI.mozaAPI.getMotorEqualizerAmp(ref err)["EqualizerAmp55"],
-                EQ100_EqualizerAmp100 = mozaAPI.mozaAPI.getMotorEqualizerAmp(ref err)["EqualizerAmp100"]
-            };
-            return currentMozaSettings;
-
-
+                mozaAPI.ERRORCODE err = mozaAPI.ERRORCODE.NORMAL;
+                MozaProfile currentMozaSettings = new MozaProfile
+                {
+                    MotorFfbStrength = mozaAPI.mozaAPI.getMotorFfbStrength(ref err),
+                    MotorLimitAngle = mozaAPI.mozaAPI.getMotorLimitAngle(ref err).Item2,
+                    MotorNaturalDamper = mozaAPI.mozaAPI.getMotorNaturalDamper(ref err),
+                    MotorLimitWheelSpeed = mozaAPI.mozaAPI.getMotorLimitWheelSpeed(ref err),
+                    MotorSpringStrength = mozaAPI.mozaAPI.getMotorSpringStrength(ref err),
+                    MotorRoadSensitivity = mozaAPI.mozaAPI.getMotorRoadSensitivity(ref err),
+                    MotorNaturalInertia = mozaAPI.mozaAPI.getMotorNaturalInertia(ref err),
+                    MotorNaturalFriction = mozaAPI.mozaAPI.getMotorNaturalFriction(ref err),
+                    MotorSpeedDamping = mozaAPI.mozaAPI.getMotorSpeedDamping(ref err),
+                    MotorSpeedDampingStartPoint = mozaAPI.mozaAPI.getMotorSpeedDampingStartPoint(ref err),
+                    EQ10_EqualizerAmp7_5 = mozaAPI.mozaAPI.getMotorEqualizerAmp(ref err)["EqualizerAmp7_5"],
+                    EQ15_EqualizerAmp13 = mozaAPI.mozaAPI.getMotorEqualizerAmp(ref err)["EqualizerAmp13"],
+                    EQ25_EqualizerAmp22_5 = mozaAPI.mozaAPI.getMotorEqualizerAmp(ref err)["EqualizerAmp22_5"],
+                    EQ40_EqualizerAmp39 = mozaAPI.mozaAPI.getMotorEqualizerAmp(ref err)["EqualizerAmp39"],
+                    EQ60_EqualizerAmp55 = mozaAPI.mozaAPI.getMotorEqualizerAmp(ref err)["EqualizerAmp55"],
+                    EQ100_EqualizerAmp100 = mozaAPI.mozaAPI.getMotorEqualizerAmp(ref err)["EqualizerAmp100"],
+                    CarModel = "-"
+                };
+                return currentMozaSettings;
+            }
+            catch (Exception e)
+            {
+                MozaProfile currentMozaSettings = null;
+                return currentMozaSettings;
+            }
         }
 
         public System.Windows.Controls.Control GetWPFSettingsControl(PluginManager pluginManager)
         {
-            return new SettingsControl(this, Settings);
+
+            var control = new SettingsControl(this, Settings);
+            _viewModel = control.ViewModel;
+            _viewModel.ActiveProfileKey = "none";
+
+
+            if (_viewModel.MappingFilterText != pluginManager.GameName)
+            {
+                _viewModel.MappingFilterText = pluginManager.GameName;
+            }
+            return control;
+            //return new SettingsControl(this, Settings);
         }
 
         public void End(PluginManager pluginManager)
@@ -300,7 +397,7 @@ namespace DonutzMozaPlugin
                     mozaProfileToBeChanged.EQ60_EqualizerAmp55 = Clamp(mozaProfileToBeChanged.EQ60_EqualizerAmp55 + 10, 0, 500);
                     break;
                 case 16:
-                    mozaProfileToBeChanged.EQ100_EqualizerAmp100 = Clamp(mozaProfileToBeChanged.EQ100_EqualizerAmp100 + 10, 0, 500);
+                    mozaProfileToBeChanged.EQ100_EqualizerAmp100 = Clamp(mozaProfileToBeChanged.EQ100_EqualizerAmp100 + 10, 0, 100);
                     break;
 
                 default:
@@ -361,7 +458,7 @@ namespace DonutzMozaPlugin
                     mozaProfileToBeChanged.EQ60_EqualizerAmp55 = Clamp(mozaProfileToBeChanged.EQ60_EqualizerAmp55 - 10, 0, 500);
                     break;
                 case 16:
-                    mozaProfileToBeChanged.EQ100_EqualizerAmp100 = Clamp(mozaProfileToBeChanged.EQ100_EqualizerAmp100 - 10, 0, 500);
+                    mozaProfileToBeChanged.EQ100_EqualizerAmp100 = Clamp(mozaProfileToBeChanged.EQ100_EqualizerAmp100 - 10, 0, 100);
                     break;
 
                 default:

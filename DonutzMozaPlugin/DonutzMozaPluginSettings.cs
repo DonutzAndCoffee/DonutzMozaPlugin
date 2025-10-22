@@ -1,12 +1,4 @@
-﻿using SimHub.Plugins.OutputPlugins.Dash.GLCDTemplating;
-using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Linq;
-using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Input;
+﻿using System.Collections.Generic;
 
 namespace DonutzMozaPlugin
 {
@@ -34,17 +26,35 @@ namespace DonutzMozaPlugin
             public int EQ40_EqualizerAmp39 { get; set; } // min 0, max 500
             public int EQ60_EqualizerAmp55 { get; set; } // min 0, max 500
             public int EQ100_EqualizerAmp100 { get; set; } // min 0, max 500
+            public string CarModel { get; set; } = "-";
 
-            
-                    
-                    
-                    
-                    
-                    
+            public MozaProfile Clone()
+            {
+                return new MozaProfile
+                {
+                    CarModel = this.CarModel,
+                    MotorFfbStrength = this.MotorFfbStrength,
+                    MotorLimitAngle = this.MotorLimitAngle,
+                    MotorNaturalDamper = this.MotorNaturalDamper,
+                    MotorLimitWheelSpeed = this.MotorLimitWheelSpeed,
+                    MotorSpringStrength = this.MotorSpringStrength,
+                    MotorRoadSensitivity = this.MotorRoadSensitivity,
+                    MotorNaturalInertia = this.MotorNaturalInertia,
+                    MotorNaturalFriction = this.MotorNaturalFriction,
+                    MotorSpeedDamping = this.MotorSpeedDamping,
+                    MotorSpeedDampingStartPoint = this.MotorSpeedDampingStartPoint,
+                    EQ10_EqualizerAmp7_5 = this.EQ10_EqualizerAmp7_5,
+                    EQ15_EqualizerAmp13 = this.EQ15_EqualizerAmp13,
+                    EQ25_EqualizerAmp22_5 = this.EQ25_EqualizerAmp22_5,
+                    EQ40_EqualizerAmp39 = this.EQ40_EqualizerAmp39,
+                    EQ60_EqualizerAmp55 = this.EQ60_EqualizerAmp55,
+                    EQ100_EqualizerAmp100 = this.EQ100_EqualizerAmp100
+                    };
+                }
 
+         }
 
-            // Weitere Parameter hinzufügen, je nach Bedarf
-        }
+        
 
         public class GameSetting
         {
@@ -54,10 +64,16 @@ namespace DonutzMozaPlugin
 
             public bool activeCarMapping { get; set; } = false;
 
+            public bool learnNewCars { get; set; } = false;
+
+            public bool reversedFFB { get; set; } = false;
+
             public GameSetting(string gameName) { 
                 this.Name = gameName;
                 this.activeProfileMapping = false;
                 this.activeCarMapping = false;
+                this.learnNewCars = false;
+                this.reversedFFB = false;
             }
         }
 
@@ -81,42 +97,66 @@ namespace DonutzMozaPlugin
         public Dictionary<string, GameSetting> gameSettings { get; set; } = new Dictionary<string, GameSetting>();
 
         // Methode zum Abrufen eines Profils für eine bestimmte Spiel/Fahrzeug-Kombination
-        public MozaProfile GetProfile(string gameCarKey)
+        public MozaProfile GetProfile(string gameName, string CarName, bool CarMapping, bool newCarLearning, string carModel, out string gameCarKey)
         {
-            // Profil zurückgeben, falls Kombination existiert; ansonsten Standardprofil erstellen
+
+            gameCarKey = "";
+
+            if (CarMapping)
+            {
+                gameCarKey = gameName + "_" + CarName;
+                if (!newCarLearning)
+                {
+                    if (profileMapping.TryGetValue(gameCarKey, out MozaProfile profil))
+                    {
+                        return profil;
+                    }
+                    else
+                    {
+                        gameCarKey = gameName;
+                    }
+                }
+            }
+            else
+            {
+                gameCarKey = gameName;
+            }
+
             if (profileMapping.TryGetValue(gameCarKey, out MozaProfile profile))
             {
                 return profile;
             }
             else
             {
-                mozaAPI.ERRORCODE err = mozaAPI.ERRORCODE.NORMAL;
-                // Standardprofil anlegen, falls kein Profil existiert
-                MozaProfile standardProfil = new MozaProfile
+                MozaProfile defaultProfile;
+                
+                if (profileMapping.TryGetValue(gameName, out MozaProfile gameProfile))
                 {
-                    MotorFfbStrength = mozaAPI.mozaAPI.getMotorFfbStrength(ref err),
-                    MotorLimitAngle = mozaAPI.mozaAPI.getMotorLimitAngle(ref err).Item2,
-                    MotorNaturalDamper = mozaAPI.mozaAPI.getMotorNaturalDamper(ref err),
-                    MotorLimitWheelSpeed = mozaAPI.mozaAPI.getMotorLimitWheelSpeed(ref err),
-                    MotorSpringStrength = mozaAPI.mozaAPI.getMotorSpringStrength(ref err),
-                    MotorRoadSensitivity = mozaAPI.mozaAPI.getMotorRoadSensitivity(ref err),
-                    MotorNaturalInertia = mozaAPI.mozaAPI.getMotorNaturalInertia(ref err),
-                    MotorNaturalFriction = mozaAPI.mozaAPI.getMotorNaturalFriction(ref err),
-                    MotorSpeedDamping = mozaAPI.mozaAPI.getMotorSpeedDamping(ref err),
-                    MotorSpeedDampingStartPoint = mozaAPI.mozaAPI.getMotorSpeedDampingStartPoint(ref err),
-                    EQ10_EqualizerAmp7_5 = mozaAPI.mozaAPI.getMotorEqualizerAmp(ref err)["EqualizerAmp7_5"],
-                    EQ15_EqualizerAmp13 = mozaAPI.mozaAPI.getMotorEqualizerAmp(ref err)["EqualizerAmp13"],
-                    EQ25_EqualizerAmp22_5 = mozaAPI.mozaAPI.getMotorEqualizerAmp(ref err)["EqualizerAmp22_5"],
-                    EQ40_EqualizerAmp39 = mozaAPI.mozaAPI.getMotorEqualizerAmp(ref err)["EqualizerAmp39"],
-                    EQ60_EqualizerAmp55 = mozaAPI.mozaAPI.getMotorEqualizerAmp(ref err)["EqualizerAmp55"],
-                    EQ100_EqualizerAmp100 = mozaAPI.mozaAPI.getMotorEqualizerAmp(ref err)["EqualizerAmp100"]
-                };
-                profileMapping[gameCarKey] = standardProfil;  // Standardprofil speichern
-                foreach (var entry in mozaAPI.mozaAPI.getMotorEqualizerAmp(ref err))
-                {
-                    SimHub.Logging.Current.Info($"MOZA EQUALIZER: Key = {entry.Key}, Value = {entry.Value}");
+                    defaultProfile = gameProfile.Clone();
                 }
-                return standardProfil;
+                else
+                {
+                    defaultProfile = getCurrentMozaSettings();
+                }
+                
+                   
+                profileMapping[gameCarKey] = defaultProfile;  // Standardprofil speichern    
+                if (newCarLearning) 
+                {
+                    // create new game related profile if it does not exist, yet.
+                    if (!profileMapping.TryGetValue(gameName, out MozaProfile notUsed))
+                    {
+                        MozaProfile defaultGameProfile = getCurrentMozaSettings();
+                        profileMapping[gameName] = defaultGameProfile;
+                        //profileMapping[gameName] = getCurrentMozaSettings();
+                        //profileMapping[gameName].CarModel = "-";
+                    }
+                    if (profileMapping.TryGetValue(gameCarKey, out MozaProfile existingProfile))
+                    {
+                        existingProfile.CarModel = carModel;
+                    }
+                }
+                return defaultProfile;
             }
         }
 
@@ -140,24 +180,26 @@ namespace DonutzMozaPlugin
                 EQ25_EqualizerAmp22_5 = mozaAPI.mozaAPI.getMotorEqualizerAmp(ref err)["EqualizerAmp22_5"],
                 EQ40_EqualizerAmp39 = mozaAPI.mozaAPI.getMotorEqualizerAmp(ref err)["EqualizerAmp39"],
                 EQ60_EqualizerAmp55 = mozaAPI.mozaAPI.getMotorEqualizerAmp(ref err)["EqualizerAmp55"],
-                EQ100_EqualizerAmp100 = mozaAPI.mozaAPI.getMotorEqualizerAmp(ref err)["EqualizerAmp100"]
+                EQ100_EqualizerAmp100 = mozaAPI.mozaAPI.getMotorEqualizerAmp(ref err)["EqualizerAmp100"],
+                CarModel = "-"
             };
+            foreach (var entry in mozaAPI.mozaAPI.getMotorEqualizerAmp(ref err))
+            {
+                SimHub.Logging.Current.Info($"MOZA EQUALIZER: Key = {entry.Key}, Value = {entry.Value}");
+            }
+            SimHub.Logging.Current.Info($"MOZA REV LEDs: {string.Join(", ", mozaAPI.mozaAPI.getSteeringWheelShiftIndicatorLightRpm(ref err))}");
+            
+            foreach (var entry in mozaAPI.mozaAPI.getSteeringWheelShiftIndicatorLightRpm(ref err))
+            {
+                SimHub.Logging.Current.Info($"MOZA REV LEDs: {entry}");
+            }
             return currentMozaSettings;
-
-
         }
-
-
 
         // Methode zum Setzen eines Profils für eine bestimmte Spiel/Fahrzeug-Kombination
         public void SetProfile(string gameCarKey, MozaProfile profile)
         {
             profileMapping[gameCarKey] = profile;
         }
-
-
-
-        
-
     }
 }

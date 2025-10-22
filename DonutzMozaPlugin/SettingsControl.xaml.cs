@@ -1,20 +1,25 @@
-﻿using log4net.Plugin;
-using SimHub.Plugins;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.Globalization;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Data;
+using System.Windows.Input;
+using System.Windows.Media;
 using static DonutzMozaPlugin.DonutzMozaPluginSettings;
 
 namespace DonutzMozaPlugin
 {
+
     public class SettingsViewModel : INotifyPropertyChanged
     {
         private readonly DonutzMozaPlugin _plugin;
         public DonutzMozaPluginSettings Settings { get; }
+
+
 
         private string _mappingFilterText;
         private string _selectedProfileKey;
@@ -27,6 +32,23 @@ namespace DonutzMozaPlugin
         {
             _plugin.SetMozaProfile(profile);
         }
+
+        private string _activeProfileKey;
+        public string ActiveProfileKey
+        {
+            get => _activeProfileKey;
+            set
+            {
+                if (_activeProfileKey != value)
+                {
+                    _activeProfileKey = value;
+                    OnPropertyChanged(nameof(ActiveProfileKey));
+                    RefreshFilteredProfiles(); // <--- WICHTIG!
+                }
+            }
+        }
+
+
 
         public string MappingFilterText
         {
@@ -105,6 +127,16 @@ namespace DonutzMozaPlugin
             OnPropertyChanged(nameof(GameSettingsList));
         }
 
+        public void ReloadProfileSettings()
+        {
+            FilteredProfiles.Clear();
+            foreach (var item in Settings.profileMapping)
+            {
+                FilteredProfiles.Add(item);
+            }
+            OnPropertyChanged(nameof(FilteredProfiles));
+        }
+
         private IEnumerable<KeyValuePair<string, MozaProfile>> GetFilteredProfiles()
         {
             if (string.IsNullOrEmpty(MappingFilterText))
@@ -113,14 +145,27 @@ namespace DonutzMozaPlugin
                 .Where(profile => profile.Key.ToLower().Contains(MappingFilterText.ToLower()));
         }
 
+        //public void RefreshFilteredProfiles()
+        //{
+        //    FilteredProfiles.Clear();
+        //    foreach (var profile in GetFilteredProfiles())
+        //    {
+        //        FilteredProfiles.Add(profile);
+        //    }
+        //}
+
         public void RefreshFilteredProfiles()
         {
-            FilteredProfiles.Clear();
-            foreach (var profile in GetFilteredProfiles())
+            Application.Current.Dispatcher.Invoke(() =>
             {
-                FilteredProfiles.Add(profile);
-            }
+                FilteredProfiles.Clear();
+                foreach (var profile in GetFilteredProfiles())
+                {
+                    FilteredProfiles.Add(profile);
+                }
+            });
         }
+
 
         public event PropertyChangedEventHandler PropertyChanged;
         protected void OnPropertyChanged(string propertyName)
@@ -139,10 +184,15 @@ namespace DonutzMozaPlugin
         {
             InitializeComponent();
             _viewModel = new SettingsViewModel(plugin, settings);
+
             _plugin = plugin;
             DataContext = _viewModel;
-        }
+            //var highlighter = (ProfileHighlightConverter)this.Resources["ProfileHighlighter"];
+            //highlighter.ActiveKey = _viewModel.ActiveProfileKey;
 
+
+        }
+        public SettingsViewModel ViewModel => _viewModel;
         private void Slider_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
         {
             var profile = (MozaProfile)((Slider)sender).DataContext;
@@ -163,11 +213,19 @@ namespace DonutzMozaPlugin
 
         private void OnDeleteProfileButtonClick(object sender, RoutedEventArgs e)
         {
-            var result = MessageBox.Show("Do you really want to delete this entry?",
-                                         "Really?", MessageBoxButton.YesNo, MessageBoxImage.Warning);
-            if (result == MessageBoxResult.Yes)
+            if (!string.IsNullOrEmpty(_viewModel.SelectedProfileKey))
             {
-                _viewModel.DeleteSelectedProfile();
+                var result = MessageBox.Show("Do you really want to delete this entry?",
+                                         "Really?", MessageBoxButton.YesNo, MessageBoxImage.Warning);
+                if (result == MessageBoxResult.Yes)
+                {
+                    _viewModel.DeleteSelectedProfile();
+                }
+            }
+            else
+            {
+                var result = MessageBox.Show("You need to select an entry first! Just click on the line!",
+                                         "Nothing selected.", MessageBoxButton.OK, MessageBoxImage.Warning);
             }
         }
         private void TitledSlider_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
@@ -176,7 +234,54 @@ namespace DonutzMozaPlugin
             slider.Value = Math.Round(slider.Value / 10) * 10;
         }
 
+        private void RefreshProfileList_Click(object sender, RoutedEventArgs e)
+        {
+            _viewModel.ReloadProfileSettings();
+        }
+
+        private void ListView_PreviewMouseWheel(object sender, MouseWheelEventArgs e)
+        {
+            var listView = sender as ListView;
+            var scrollViewer = FindAncestor<ScrollViewer>(listView);
+
+            if (scrollViewer != null && !e.Handled)
+            {
+                // Scroll am übergeordneten ScrollViewer durchführen
+                scrollViewer.ScrollToVerticalOffset(scrollViewer.VerticalOffset - e.Delta / 3.0);
+                e.Handled = true;
+            }
+        }
+
+        private static T FindAncestor<T>(DependencyObject current) where T : DependencyObject
+        {
+            while (current != null)
+            {
+                if (current is T)
+                    return (T)current;
+                current = VisualTreeHelper.GetParent(current);
+            }
+            return null;
+        }
+
     }
+
+    public class ProfileHighlightConverter : IValueConverter
+    {
+        public string ActiveKey { get; set; }
+
+        public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            string profileKey = value as string;
+            return profileKey == ActiveKey ? new SolidColorBrush(Color.FromArgb(128, 160, 255, 160)) : null;
+        }
+
+        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            throw new NotImplementedException();
+        }
+    }
+
+    
 
 
 
